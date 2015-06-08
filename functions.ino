@@ -1,56 +1,24 @@
-#include <OneWire.h>
+//byte i;
+//byte present = 0;
+//byte type_s;
+//byte data[12];
+//byte addr[8];
+//float celsius, fahrenheit;
+//String result = "";
+//String dhtResult = "";
+//char val;
 
-#define DATA_LED_PIN  4
-// OneWire DS18S20, DS18B20, DS1822 Temperature Example
-//
-// http://www.pjrc.com/teensy/td_libs_OneWire.html
-//
-// The DallasTemperature library can do all this work for you!
-// http://milesburton.com/Dallas_Temperature_Control_Library
-
-OneWire  ds(2);  // on pin 10 (a 4.7K resistor is necessary)
-
-void setup(void) {
-  //Serial.begin(9600);// default for terminal
-  Serial.begin(19200);// for my bt module
-  pinMode(DATA_LED_PIN, OUTPUT);
-}
-
-void loop(void) {
-  byte i;
-  byte present = 0;
-  byte type_s;
-  byte data[12];
-  byte addr[8];
-  float celsius, fahrenheit;
-  String result = "";
-  char val;
-  //int flag;
-
-  if(Serial.available() > 0){     
-    val = Serial.read();
-    //Serial.println(">");   
-    //Serial.println(val);
-    //Serial.println("<");
-    //flag=0;
-    
-    if (val == '1' || val == '0'){
-      if (val == '1'){
-        digitalWrite(DATA_LED_PIN, HIGH);
-        delay(100);
-        digitalWrite(DATA_LED_PIN, LOW);
-      }
-      
-      result += "BEGIN";
-    
-      while(1){
-        if ( !ds.search(addr)) {
+void read(){  
+  result += "BEGIN";
+        
+  while(1){
+  if ( !ds.search(addr)) {
           //Serial.println("No more addresses.");
           //Serial.println();
-          ds.reset_search();
-          delay(250);
-          break;
-        }
+    ds.reset_search();
+    delay(250);
+    break;
+  }
       
         //Serial.print("ROM =");
         result += "ROM";
@@ -139,7 +107,13 @@ void loop(void) {
         //Serial.print(fahrenheit);
         //Serial.println(" Fahrenheit");
         result += celsius;
+        
+        //lcd.clear();
+        display();
       }
+      
+      if(counter >= 2)
+        counter = 0;
       
       result += "END#";    
             
@@ -147,6 +121,43 @@ void loop(void) {
         Serial.println(result);
         //flag = 1;
       //}
-    }
+      
+      delay(2000);
+      //lcd.clear();
+      result = "";
+}
+
+void display(void){
+  lcd.setCursor(0, 0);
+  lcd.print("DS18b20");
+  lcd.setCursor(0, counter % 3 + 1);
+  lcd.print(celsius);
+  counter += 1;
+}
+
+void readDHT(){
+  //lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("DHT 21");
+      lcd.setCursor(0, 1);
+      DHT.read22(DHT_PIN);
+      dhtResult += "Temp: ";
+      dhtResult += DHT.temperature;
+      lcd.print(dhtResult);
+      dhtResult = "";
+      //delay(1000);
+      lcd.setCursor(0, 2);
+      dhtResult += "Humidity: ";
+      dhtResult += DHT.humidity;
+      lcd.print(dhtResult);
+      delay(5000);
+      dhtResult = "";
+}
+
+void button(){
+  if(digitalRead(BUTTON_PIN) == HIGH){
+    flag = !flag;  // button pressed
+    lcd.clear();
+    //digitalWrite(DATA_LED_PIN, HIGH);
   }
 }
