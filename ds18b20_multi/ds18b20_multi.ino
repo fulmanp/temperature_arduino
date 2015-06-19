@@ -1,6 +1,7 @@
 #include <OneWire.h>
 #include <LiquidCrystal.h>
-#include "dht.h"
+#include <dht.h>
+#include <ArduinoJson.h>
 
 #define PIN_BUTTON 3
 #define PIN_DATA_LED  4
@@ -9,7 +10,9 @@
 #define SCREEN_DS18B20 0
 #define SCREEN_DHT 1
 #define MAX_DS18B20 4
-#define DISP_WIDTH 20
+// Saying the truth, MAX_DHT is the number of DHT sensors which now are used.
+#define MAX_DHT 1
+#define DISP_TYPE_4_20 1
 
 dht DHT_1;
 
@@ -21,6 +24,7 @@ typedef struct
   float celsius;
   float fahrenheit;
   String rom;    // ROM as readable string
+  char romC[17]; // ROM as readable sequence of chars; last one is for null char ('\0')
   byte addr[8];  // ROM as array of bytes
   bool valid;
 } ds18b20Sensor;
@@ -50,45 +54,46 @@ void setup(void) {
   pinMode(PIN_DATA_LED, OUTPUT);
   pinMode(PIN_BUTTON, INPUT);
   attachInterrupt(1, switchScreen, CHANGE);  
-  initDisplay();
+  initDisplay(DISP_TYPE_4_20);
   readTemp();
-  printTemp();
+  printTemp(DISP_TYPE_4_20);
 }
 
 void loop(void) {
   if(timeElapsed(&lastMillisTemperatureRead, INTERVAL_TEMP_READ)){
     tick++;
     readTemp();
-    printTemp();
+    printTemp(DISP_TYPE_4_20);
   } else {
     if(Serial.available() > 0){    
       valFromSerial = Serial.read();  
       if (valFromSerial == '1' || valFromSerial == '0'){
         if (valFromSerial == '1'){
-          Serial.println("1 received");
           digitalWrite(PIN_DATA_LED, HIGH);
           delay(100);
           digitalWrite(PIN_DATA_LED, LOW);
         }      
         readTemp();
-        printTemp();
-        //sendTemp(); // Not yet implemented
+        printTemp(DISP_TYPE_4_20);
+        sendTemp();
      }
    }
   }  
 }
 
-void initDisplay(){
-  lcd.begin(20, 4); // Choose screen size - 20x4
-  lcd.clear();
-  lcd.setCursor(0,0);  
-  lcd.print("      Welcome!      ");
-  lcd.setCursor(0,1);
-  lcd.print("    Temp & Humid    ");
-  lcd.setCursor(0,2);
-  lcd.print("      Station       ");
-  delay(2000);
-  lcd.clear();
+void initDisplay(int dispType){
+  if (dispType == DISP_TYPE_4_20){
+    lcd.begin(20, 4); // Choose screen size - 20x4
+    lcd.clear();
+    lcd.setCursor(0,0);  
+    lcd.print("      Welcome!      ");
+    lcd.setCursor(0,1);
+    lcd.print("    Temp & Humid    ");
+    lcd.setCursor(0,2);
+    lcd.print("      Station       ");
+    delay(2000);
+    lcd.clear();
+  }
 }
 
 void readTemp(){
