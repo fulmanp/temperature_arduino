@@ -80,66 +80,145 @@ void readTempDS18B20(void){
     }
   }// Main loop END
   
+  number_of_ds18b20 = counter;
+  
   for(; counter<MAX_DS18B20; ++counter){
     ds18b20Sensors[counter].valid = false;    
   }
 }
 
-void printTemp(int dispType){
+void updateScreen(int dispType){
   lcd.clear();
   
-  if (dispType == DISP_TYPE_4_20){
+//  if (dispType == DISP_TYPE_4_20){
+//    if (screen == SCREEN_DS18B20){
+//      for(i=screen_offset*rows, k=0; i<(screen_offset+1)*rows; ++i, ++k){
+//        if(ds18b20Sensors[i].valid){
+//          lcd.setCursor(0, k);
+//          tmpString = "";                
+//          tmpString += ds18b20Sensors[i].celsius;
+//          tmpString += " ";
+//          ds18b20Sensors[i].rom = "";
+//          for(j=0; j<6; ++j){
+//            if (ds18b20Sensors[i].addr[j]<16)
+//              ds18b20Sensors[i].rom += "0";
+//            ds18b20Sensors[i].rom += String(ds18b20Sensors[i].addr[j], HEX);
+//          }
+//          tmpString += ds18b20Sensors[i].rom;
+//          lcd.print(tmpString);
+//        }
+//      } 
+//    } else if (screen == SCREEN_DHT){
+//      tmpString = "T:";
+//      tmpString += DHT_1.temperature;
+//      tmpString += " H:";
+//      tmpString += DHT_1.humidity;    
+//      lcd.setCursor(0,0);
+//      lcd.print(tmpString);
+//    }
+//  
+//    // print "time"
+//    lcd.setCursor(0,2);
+//    tmpString = "Ticks:";
+//    tmpString += tick;
+//    lcd.print(tmpString);
+//    lcd.setCursor(0,3);
+//    h = tick/60;
+//    m = tick - h*60;
+//    d = h/24;
+//    h = h - d*24;
+//    // For tick testing
+//    // 1 hour = 6 minutes
+//    // 1 day = 2 hours
+////    h = tick/6;
+////    m = tick - h*6;
+////    d = h/2;
+////    h = h - d*2;
+//    tmpString = "D:";
+//    tmpString += d;
+//    tmpString += " H:";
+//    tmpString += h;
+//    tmpString += " M:";
+//    tmpString += m;
+//    lcd.print(tmpString);
+//  }// End if for DISP_TYPE_4_20 
+//  else
+  if (dispType == DISP_TYPE_2_16 || dispType == DISP_TYPE_4_20){
+    
+    if (CURRENT_DISP == DISP_TYPE_4_20) rows = 4;
+    else if (CURRENT_DISP == DISP_TYPE_2_16) rows = 2;
+    
     if (screen == SCREEN_DS18B20){
-      for(i=0; i<MAX_DS18B20; ++i){
+      for(i=current_ds18b20, k=0; i < current_ds18b20 + rows/2; ++i){
         if(ds18b20Sensors[i].valid){
-          lcd.setCursor(0, i);
-          tmpString = "";                
+          lcd.setCursor(0, k);
+          lcd.write(ICON_THERMOMETER);
+          tmpString = " ";                
           tmpString += ds18b20Sensors[i].celsius;
-          tmpString += " ";
+          lcd.print(tmpString);    
+          lcd.print((char)223); //degree sign
+          lcd.print("C");      
+          ++k;
+          
+          lcd.setCursor(0, k);
+          lcd.write(ICON_ROM);
+          tmpString = " ";
           ds18b20Sensors[i].rom = "";
-          for(j=0; j<4; ++j){
+          for(j=0; j<6; ++j){
             if (ds18b20Sensors[i].addr[j]<16)
               ds18b20Sensors[i].rom += "0";
             ds18b20Sensors[i].rom += String(ds18b20Sensors[i].addr[j], HEX);
           }
           tmpString += ds18b20Sensors[i].rom;
           lcd.print(tmpString);
+          ++k; 
         }
       } 
-    } else if (screen == SCREEN_DHT){
-      tmpString = "T:";
-      tmpString += DHT_1.temperature;
-      tmpString += " H:";
-      tmpString += DHT_1.humidity;    
-      lcd.setCursor(0,0);
-      lcd.print(tmpString);
-    }
-  
-    // print "time"
-    lcd.setCursor(0,2);
-    tmpString = "Ticks:";
-    tmpString += tick;
-    lcd.print(tmpString);
-    lcd.setCursor(0,3);
-    h = tick/60;
-    m = tick - h*60;
-    d = h/24;
-    h = h - d*24;
-    // For tick testing
-    // 1 hour = 6 minutes
-    // 1 day = 2 hours
-//    h = tick/6;
-//    m = tick - h*6;
-//    d = h/2;
-//    h = h - d*2;
-    tmpString = "D:";
-    tmpString += d;
-    tmpString += " H:";
-    tmpString += h;
-    tmpString += " M:";
-    tmpString += m;
-    lcd.print(tmpString);
-  }// End if for DISP_TYPE_4_20         
+    } else if (screen == SCREEN_DHT_1){
+        lcd.setCursor(0, 0);
+        lcd.write(ICON_THERMOMETER);
+        tmpString = " ";
+        tmpString += DHT_1.temperature;
+        lcd.print(tmpString);    
+        lcd.print((char)223); //degree sign
+        lcd.print("C");
+        
+        lcd.setCursor(9, 0);
+        lcd.write(ICON_DROPLET);
+        tmpString = " ";
+        tmpString += DHT_1.humidity;    
+        tmpString += "%";
+        lcd.print(tmpString);        
+    } else if (screen == SCREEN_TICKS){
+        // print "time"
+        lcd.setCursor(0,0);
+        tmpString = "Ticks:";
+        tmpString += tick;
+        lcd.print(tmpString);
+        lcd.setCursor(0,1);
+        
+        h = tick/60;
+        m = tick - h*60;
+        d = h/24;
+        h = h - d*24;
+
+        // For tick testing
+        // 1 hour = 6 minutes
+        // 1 day = 2 hours
+//      h = tick/6;
+//      m = tick - h*6;
+//      d = h/2;
+//      h = h - d*2;
+
+        tmpString = "D:";
+        tmpString += d;
+        tmpString += " H:";
+        tmpString += h;
+        tmpString += " M:";
+        tmpString += m;
+        lcd.print(tmpString);
+    }      
+  }// End if for DISP_TYPE_2_16 or DISP_TYPE_4_20
 }
 
 void sendTemp(){
@@ -157,7 +236,7 @@ void sendTemp(){
   StaticJsonBuffer<JSON_OBJECT_SIZE(3)> jsonBuffer[MAX_DS18B20];
   JsonObject * JSONds18b20[MAX_DS18B20];
   
-  // We have static memory allocation, so we have to in advance determine memory usage.
+  // We have static memory allocation, so we have to determine in advance memory usage.
   const int BUFFER_SIZE_ROOT = JSON_OBJECT_SIZE(MAX_DS18B20 + MAX_DHT + 1);
   StaticJsonBuffer<BUFFER_SIZE_ROOT> jsonBufferRoot;
   JsonObject& JSONroot = jsonBufferRoot.createObject();
@@ -216,9 +295,26 @@ void readTempDHT(void){
 }
 
 void switchScreen(void){
+  int rows;
+  
   if(digitalRead(PIN_BUTTON) == HIGH){
-    screen = (screen == SCREEN_DS18B20 ? SCREEN_DHT : SCREEN_DS18B20);
-    printTemp(DISP_TYPE_4_20);
+    
+    if (CURRENT_DISP == DISP_TYPE_4_20) rows = 4;
+    else if (CURRENT_DISP == DISP_TYPE_2_16) rows = 2;
+    
+    if (screen == SCREEN_DS18B20) {
+      if (current_ds18b20 < number_of_ds18b20-1){
+        current_ds18b20 += rows/2; // rows/2 because info for one ds18b20 takes 2 rows
+      } else {
+        screen = SCREEN_DHT_1;
+        current_ds18b20 = 0;
+      }
+    } else if (screen == SCREEN_DHT_1) {
+      screen = SCREEN_TICKS;
+    } else if (screen == SCREEN_TICKS) {
+      screen = SCREEN_DS18B20;
+    }
+    updateScreen(CURRENT_DISP);
   }
 }
 
