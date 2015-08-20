@@ -302,10 +302,9 @@ void switchScreen(void){
     if (CURRENT_DISP == DISP_TYPE_4_20) rows = 4;
     else if (CURRENT_DISP == DISP_TYPE_2_16) rows = 2;
     
-    if (screen == SCREEN_DS18B20) {
-      if (current_ds18b20 < number_of_ds18b20-1){
-        current_ds18b20 += rows/2; // rows/2 because info for one ds18b20 takes 2 rows
-      } else {
+    if (screen == SCREEN_DS18B20) {      
+      current_ds18b20 += rows/2; // rows/2 because info for one ds18b20 takes 2 rows
+      if (current_ds18b20 >= number_of_ds18b20){
         screen = SCREEN_DHT_1;
         current_ds18b20 = 0;
       }
