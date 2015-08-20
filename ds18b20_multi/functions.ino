@@ -183,7 +183,7 @@ void updateScreen(int dispType){
         lcd.print((char)223); //degree sign
         lcd.print("C");
         
-        lcd.setCursor(9, 0);
+        lcd.setCursor(0, 1);
         lcd.write(ICON_DROPLET);
         tmpString = " ";
         tmpString += DHT_1.humidity;    
